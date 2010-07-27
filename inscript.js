@@ -1,42 +1,34 @@
 /* 
-
-
-       Original Code By Santhosh Thottingal ,
-    Modified By Hrishikesh K B <hrishi.kb@gmail.com> 
-
-
-#   This program is free software; you can redistribute it and/or modify
-#   it under the terms of the GNU Lesser General Public License as published by
-#   the Free Software Foundation; either version 3 of the License, or
-#   (at your option) any later version.
-#
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU Lesser General Public License for more details.
-#
-#   You should have received a copy of the GNU General Public License
-#   along with this program; if not, write to the Free Software
-#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-#
-#   If you find any bugs or have any suggestions email: hrishi.kb@gmail.com
-#         
-
+* Malayalam Inscript Implementation in Javascript.
+* Copyright 2010, Hrishikesh K B <hrishi.kb@gmail.com> 
+* 
+* Based on the swanalekha javascript code by Santhosh Thottingal and Nishan Naseer.
+* 
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU Lesser General Public License as published by
+* the Free Software Foundation; either version 3 of the License, or
+* (at your option) any later version.
+* 
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU Lesser General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+* 
+* If you find any bugs or have any suggestions email: hrishi.kb@gmail.com
 */ 
 
- 
-
-var pattern=null;
-var tabCount=1;
 function bind_inscript(widget){
+    if(widget.inscriptBound){ 
+        widget.inscriptBound=false;
+        disable();
+        return;  
+    }
 
-if(widget.aBound){ 
-widget.aBound=false;
-disable();
-return;  
-}
-
-var A={
+    var INSCRIPT={
 a:'\u0D4B',
 b:'\u0D35',
 c:'\u0D2E',
@@ -117,154 +109,144 @@ Z:'\u0D0E',
 '/':'\u0D2F',
 '\"':'\u0D20',
 '\'':'\u0D1F'
+    };
+    function isToggleEvent(event){
+        event = (event) ? event : window.event;
+        kCode = event.keyCode || event.which; 
+        return   ((event.keyCode == 13 && event.ctrlKey) || (event.which == 109 && event.ctrlKey));
+    };
+    function enable(){
+        widget.onkeypress=keypressEnabled;
+        widget.style.outline = 'dashed 1px red';
+    };
+    function disable(){
+        widget.style.background='white';
+        widget.onkeypress=keypressDisabled;
+        widget.style.outline = null;
+    };
+    function checkBoxListener(){
+        if(widget.inscriptBound){
+            widget.inscriptBound=false;
+            disable();
+        }	
+        else{
+            widget.inscriptBound=true;
+            enable();
+        }
+    }
+    
+    function isExplorer() {
+        return (document.selection != undefined && document.selection.createRange().isEqual != undefined);
+    }   
+    
+    function keypressEnabled(event){
+        if (event == undefined)
+            event = window.event;
+        if(isToggleEvent(event)){
+            disable();
+            document.getElementById("toggle").checked = false;
+            return;
+        }
+        getWidgetSelectionStart(widget);
+        kCode = event.keyCode || event.which; 
+    
+        if(event.ctrlKey||event. altKey||event.metaKey){
+            return true;
+        }
+        var char=String.fromCharCode(kCode );
+        var pos=widget.selectionStart;
+        var stepback=0;
+        if(!mal) {
+            patternStart=widget.selectionStart;
+            var mal=INSCRIPT[char];
+            stepback=0;
+        } 
+        if(mal){
+            if (isExplorer()) {
+                var    range = document.selection.createRange();
+                range.moveStart("character", -stepback);
+                range.text = mal;
+                range.collapse(false);
+                range.select();
+            }
+            else{
+                var scrollTop = widget.scrollTop;
+                var cursorLoc =  widget.selectionStart;
+                var stepback = cursorLoc-patternStart; 
+                widget.value=  widget.value.substr(0,patternStart)+mal+widget.value.substr(widget.selectionEnd,widget.value.length); 
+                widget.scrollTop=scrollTop ;
+                widget.selectionStart = cursorLoc + mal.length  - stepback  ;
+                widget.selectionEnd = cursorLoc + mal.length - stepback;
+            }    
+            return false;
+        
+        }
+        if( kCode ==9){
+            return false;
+        }
+        return true;
+    }
+    function keypressDisabled(event){
+        if(isToggleEvent(event)){
+            enable();
+            document.getElementById("toggle").checked = true;
+            return false;
+        }
+        return true;
+    }
+     
+    function getWidgetSelectionStart (widget) {
+        if( document.selection ){
+            // The current selection
+            var range = document.selection.createRange();
+            // We'll use this as a 'dummy'
+            var stored_range = range.duplicate();
+            // Select all text
+            stored_range.moveToElementText( widget );
+            // Now move 'dummy' end point to end point of original range
+            stored_range.setEndPoint( 'EndToEnd', range );
+            // Now we can calculate start and end points
+            widget.selectionStart = stored_range.text.length - range.text.length;
+            widget.selectionEnd = widget.selectionStart + range.text.length;
+        }
+    }
+    widget.inscriptBound=false;
+    disable();
+    var checkbox = document.getElementById("toggle");
+    if (checkbox.addEventListener) checkbox.addEventListener("click", checkBoxListener,false);
+    else if (checkbox.attachEvent) checkbox.attachEvent("onclick", checkBoxListener);
+};
 
-};
-function isToggleEvent(event){
- event = (event) ? event : window.event;
-  kCode = event.keyCode || event.which; 
-  return   ((event.keyCode == 13 && event.ctrlKey) || (event.which == 109 && event.ctrlKey));
-};
-function enable(){
-widget.onkeypress=keypressEnabled;
-widget.style.outline = 'dashed 1px red';
-};
-function disable(){
-widget.style.background='white';
-widget.onkeypress=keypressDisabled;
-widget.style.outline = null;
+function addCheckbox(textBox) {
+    if(textBox==null) return;
+    try{
+        var searchBox= document.getElementById("searchInput");
+        var element = document.createElement("input");
+        element.setAttribute("type","checkbox");
+        element.setAttribute("id","toggle");
+        var labelcheckBox = document.createTextNode(' Transliterate - Use Ctrl + M to Toggle.');
+        textBox.parentNode.insertBefore(element,textBox);
+        if(searchBox) searchBox.parentNode.insertBefore(element,searchBox);
+        document.getElementById("toggle").checked = textBox.inscriptBound;
+        textBox.parentNode.insertBefore(labelcheckBox,textBox);
+        if(searchBox)  searchBox.parentNode.insertBefore(labelcheckBox,searchBox);
+        var p = document.createElement("p");
+        p.setAttribute("style","width:100%;height:1px;");
+        textBox.parentNode.insertBefore(p,textBox);
+        if(searchBox) searchBox.parentNode.insertBefore(p,searchBox);
+    }
+    catch(ex){alert(ex);}
+}
 
-};
-function checkBoxListener(){
-	if(widget.aBound){
-		widget.aBound=false;
-		disable();
-	 }	
-else{
-		widget.aBound=true;
-		enable();
-	}
-}
-function keypressEnabled(event){
- 
-	if (event == undefined)
-		event = window.event;
-	if(isToggleEvent(event)){
-		disable();
-		document.getElementById("toggle").checked = false;
-		return;
-	}
-	getWidgetSelectionStart(widget);
-	kCode = event.keyCode || event.which; 
- 
-	if ( kCode  == 8) {
-		if(pattern.indexOf('a')>=0 || pattern.indexOf('A')>=0 || pattern.indexOf('e')>=0 || pattern.indexOf('E')>=0 || pattern.indexOf('i')>=0 || pattern.indexOf('I')>=0 || pattern.indexOf('o')>=0 || pattern.indexOf('O')>=0 || pattern.indexOf('u')>=0 || pattern.indexOf('U')>=0|| pattern.indexOf('1')>=0 || pattern.indexOf('2')>=0 || pattern.indexOf('3')>=0 || pattern.indexOf('4')>=0 || pattern.indexOf('5')>=0 || pattern.indexOf('6')>=0 || pattern.indexOf('7')>=0 || pattern.indexOf('8')>=0 || pattern.indexOf('9')>=0  ){
-			pattern=pattern.replace('a','');
-			pattern=pattern.replace('a',''); 
-			pattern=pattern.replace('A','');
-			pattern=pattern.replace('e','');
-			pattern=pattern.replace('e','');
-			pattern= pattern.replace('E','');
-			pattern= pattern.replace('i','');
-			pattern= pattern.replace('i','');
-			pattern= pattern.replace('I','');
-			pattern= pattern.replace('o','');
-			pattern= pattern.replace('o','');
-			pattern= pattern.replace('O','');
-			pattern= pattern.replace('u','');
-			pattern= pattern.replace('u','');
-			pattern= pattern.replace('U','');
-			pattern= pattern.replace('1','');
-			pattern= pattern.replace('2','');
-			pattern= pattern.replace('3','');
-			pattern= pattern.replace('4','');
-			pattern= pattern.replace('5','');
-			pattern= pattern.replace('6','');
-			pattern= pattern.replace('7','');
-			pattern= pattern.replace('8','');
-			pattern= pattern.replace('9','');
-			tabCount=1;
-			return;
-		}
-	}
-	if(event.ctrlKey||event. altKey||event.metaKey){
-		return true;
-	}
-	var char=String.fromCharCode(kCode );
-	var pos=widget.selectionStart;
-
-	if(!mal) {
-		pattern=char;
-		tabCount=1;
-		patternStart=widget.selectionStart;
-		var mal=A[pattern];
-	} 
-	if(mal){
-		var scrollTop = widget.scrollTop;
-		
-		var cursorLoc =  widget.selectionStart;var stepback=cursorLoc-patternStart;
-		widget.value=  widget.value.substr(0,patternStart)+mal+widget.value.substr(widget.selectionEnd,widget.value.length); 
-		widget.scrollTop=scrollTop ;
-		widget.selectionStart = cursorLoc + mal.length  - stepback  ;
-		widget.selectionEnd = cursorLoc + mal.length - stepback;
-		return false;
-	}
-	if( kCode ==9){
-		return false;
-	}
-	return true;
-};
-function keypressDisabled(event){
-if(isToggleEvent(event)){
-enable();
-document.getElementById("toggle").checked = true;
-return false;
-}
-return true;
-};
-widget.aBound=false;
-disable();
-var checkbox = document.getElementById("toggle");
-if (checkbox.addEventListener) 
-                checkbox.addEventListener("click", checkBoxListener,false);
-else if (checkbox.attachEvent) 
-                checkbox.attachEvent("onclick", checkBoxListener);
-};
- function addCheckbox(textBox) {
-            if(textBox==null) return;
-            try
-            {
-			var searchBox= document.getElementById("searchInput");
-            var element = document.createElement("input");
-            element.setAttribute("type","checkbox");
-            element.setAttribute("id","toggle");
-            var labelcheckBox = document.createTextNode(' Transliterate - Use Ctrl + M to Toggle.');
-            textBox.parentNode.insertBefore(element,textBox);
-            if(searchBox) searchBox.parentNode.insertBefore(element,searchBox);
-           /*  textBox.insertBefore(element,textBox);*/
-            document.getElementById("toggle").checked = textBox.aBound;
-            textBox.parentNode.insertBefore(labelcheckBox,textBox);
-           if(searchBox)  searchBox.parentNode.insertBefore(labelcheckBox,searchBox);
-            var p = document.createElement("p");
-            p.setAttribute("style","width:100%;height:1px;");
-            textBox.parentNode.insertBefore(p,textBox);
-            if(searchBox) searchBox.parentNode.insertBefore(p,searchBox);
-             }
-             catch(ex)
-             {
-              alert(ex);
-             }
-}
 function bindAllTextElements() {
-	
 	var ta=document.getElementsByTagName('textarea');
- 
 	for(var i=0;i < ta.length;++i){
 		addCheckbox(ta[i]);
 		bind_inscript(ta[i]);
 	}
 	var tb=document.getElementsByTagName('input');
 	for(var i=0;i < tb.length;++i){	
-	 type = tb[i].getAttribute('type'); 	
+        type = tb[i].getAttribute('type'); 	
 		if ( type == 'text' || type == null) { 
 			bind_inscript(tb[i]);
 		}
@@ -275,33 +257,17 @@ function bindAllTextElements() {
 	for (var i=0;i < len; i++) {		
 		bindAllTextElements(ifs[i].contentDocument.documentElement);
 	}
-	
- };
-function addLoadEvent(func) {
-	 
-            if (window.addEventListener) {
-            	window.addEventListener("load", func, false);
-			}
-            else if (window.attachEvent) {
-            	window.attachEvent("onload", func);
-			}
-}
+};
  
- function getWidgetSelectionStart (widget) {
-	 if( document.selection ){
-	// The current selection
-	var range = document.selection.createRange();
-	// We'll use this as a 'dummy'
-	var stored_range = range.duplicate();
-	// Select all text
-	stored_range.moveToElementText( widget );
-	// Now move 'dummy' end point to end point of original range
-	stored_range.setEndPoint( 'EndToEnd', range );
-	// Now we can calculate start and end points
-	widget.selectionStart = stored_range.text.length - range.text.length;
-	widget.selectionEnd = widget.selectionStart + range.text.length;
+function addLoadEvent(func) {
+    if (window.addEventListener) {
+        window.addEventListener("load", func, false);
+    }
+    else if (window.attachEvent) {
+        window.attachEvent("onload", func);
+    }
 }
- }
+
 addLoadEvent(bindAllTextElements);
 
 
