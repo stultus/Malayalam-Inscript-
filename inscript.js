@@ -79,7 +79,7 @@ U:'\u0D19',
 V:'V',
 W:'\u0D10',
 X:'\u0D02',
-Y:'\u200B',
+Y:'\u0D2D',
 Z:'\u0D0E',
 '1':'\u0D67',
 '2':'\u0D68',
@@ -107,7 +107,8 @@ Z:'\u0D0E',
 '>':'\u200D',
 '/':'\u0D2F',
 '\"':'\u0D20',
-'\'':'\u0D1F'
+'\'':'\u0D1F',
+'\\':'\u200C'
     };
     function isToggleEvent(event){
         event = (event) ? event : window.event;
@@ -116,7 +117,7 @@ Z:'\u0D0E',
     };
     function enable(){
         widget.onkeypress=keypressEnabled;
-        widget.style.outline = 'dashed 1px red';
+        widget.style.outline = 'dashed 1px blue';
     };
     function disable(){
         widget.style.background='white';
